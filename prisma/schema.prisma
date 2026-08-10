@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User model
+model User {
+  id        String     @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String     @unique
+  phone     String?
+  matricule String     @unique
+  password  String     // hashed with bcrypt
+  role      UserRole   @default(EMPLOYEE)
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  attendances Attendance[]
+  permissions Permission[]
+
+  @@index([email])
+  @@index([matricule])
+  @@index([role])
+}
+
+// User roles enum
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  EMPLOYEE
+  STUDENT
+}
+
+// Permission model for ADMIN users
+model Permission {
+  id        String   @id @default(cuid())
+  name      String   // MANAGE_USERS, VIEW_ATTENDANCE, MANAGE_SETTINGS, VIEW_STATISTICS
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+// Attendance model
+model Attendance {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date            DateTime  // Date of the attendance
+  arrivalTime     DateTime? // Time of arrival
+  departureTime   DateTime? // Time of departure
+  arrivalLat      Float?    // Latitude at arrival
+  arrivalLon      Float?    // Longitude at arrival
+  arrivalDistance Float?    // Distance from facility at arrival (in meters)
+  arrivalStatus   AttendanceStatus? // PRESENT or LATE
+  departureLat    Float?    // Latitude at departure
+  departureLon    Float?    // Longitude at departure
+  departureDistance Float?  // Distance from facility at departure (in meters)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, date]) // One attendance per user per day
+  @@index([userId])
+  @@index([date])
+}
+
+// Attendance status enum
+enum AttendanceStatus {
+  PRESENT
+  LATE
+}
+
+// Settings model (only one record per facility)
+model Settings {
+  id                    String   @id @default(cuid())
+  facilityName          String
+  address               String
+  latitude              Float
+  longitude             Float
+  gpsRadius             Float    // Radius in meters
+  officialArrivalTime   DateTime // Time of day
+  arrivalTolerance      Int      // In minutes
+  officialDepartureTime DateTime // Time of day
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([id]) // Ensure only one settings record
+}
