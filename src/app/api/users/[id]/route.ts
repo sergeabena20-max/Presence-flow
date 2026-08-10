@@ -18,6 +18,7 @@ export async function GET(
         email: true,
         phone: true,
         matricule: true,
+        department: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -100,6 +101,7 @@ export async function PUT(
       email: body.email || existingUser.email,
       phone: body.phone !== undefined ? body.phone : existingUser.phone,
       matricule: body.matricule || existingUser.matricule,
+      department: body.department || existingUser.department,
       role: body.role || existingUser.role,
       isActive: body.isActive !== undefined ? body.isActive : existingUser.isActive,
     };
@@ -119,6 +121,7 @@ export async function PUT(
         email: true,
         phone: true,
         matricule: true,
+        department: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -164,13 +167,23 @@ export async function DELETE(
       );
     }
 
-    await prisma.user.delete({
+    // Soft delete (set isActive to false)
+    const deletedUser = await prisma.user.update({
       where: { id: params.id },
+      data: { isActive: false },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        isActive: true,
+      },
     });
 
     return NextResponse.json({
       success: true,
       message: "User deleted successfully",
+      data: deletedUser,
     });
   } catch (error) {
     console.error("Error deleting user:", error);
