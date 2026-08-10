@@ -1,16 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import * as bcrypt from "bcryptjs";
-import { CreateUserInput, UpdateUserInput, ApiResponse } from "@/lib/types";
+import { CreateUserInput } from "@/lib/types";
+import { requirePermission, toApiError } from "@/lib/permissions";
 
-// GET all users
+const USER_SELECT = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  phone: true,
+  matricule: true,
+  role: true,
+  isActive: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+// GET tous les utilisateurs — SUPER_ADMIN ou ADMIN avec MANAGE_USERS
 export async function GET(request: NextRequest) {
   try {
+    await requirePermission("MANAGE_USERS");
+
     const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.min(100, parseInt(searchParams.get("limit") || "10"));
     const role = searchParams.get("role");
-    const department = searchParams.get("department");
     const search = searchParams.get("search");
     const skip = (page - 1) * limit;
 
@@ -18,10 +33,6 @@ export async function GET(request: NextRequest) {
 
     if (role) {
       where.role = role;
-    }
-
-    if (department) {
-      where.department = department;
     }
 
     if (search) {
@@ -38,19 +49,7 @@ export async function GET(request: NextRequest) {
         where,
         skip,
         take: limit,
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-          matricule: true,
-          department: true,
-          role: true,
-          isActive: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+        select: USER_SELECT,
         orderBy: { createdAt: "desc" },
       }),
       prisma.user.count({ where }),
@@ -68,68 +67,71 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to fetch users",
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    const { status, body } = toApiError(error);
+    return NextResponse.json(body, { status });
   }
 }
 
-// POST create new user
+// POST créer un utilisateur — SUPER_ADMIN ou ADMIN avec MANAGE_USERS
+// Impossible de créer un SUPER_ADMIN via cet endpoint.
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await requirePermission("MANAGE_USERS");
+
     const body: CreateUserInput = await request.json();
 
-    // Validate input
     if (!body.firstName || !body.lastName || !body.email || !body.password || !body.matricule) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Missing required fields",
-        },
+        { success: false, message: "Champs requis manquants" },
         { status: 400 }
       );
     }
 
-    // Check if user already exists by email
-    const existingEmail = await prisma.user.findUnique({
-      where: { email: body.email },
-    });
+    if (body.password.length < 8) {
+      return NextResponse.json(
+        { success: false, message: "Le mot de passe doit contenir au moins 8 caractères" },
+        { status: 400 }
+      );
+    }
+
+    const requestedRole = body.role || "EMPLOYEE";
+
+    if (requestedRole === "SUPER_ADMIN") {
+      return NextResponse.json(
+        { success: false, message: "Impossible de créer un second Super Administrateur" },
+        { status: 403 }
+      );
+    }
+
+    // Seul le SUPER_ADMIN peut créer des comptes ADMIN.
+    if (requestedRole === "ADMIN" && currentUser.role !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { success: false, message: "Seul le Super Administrateur peut créer un compte Administrateur" },
+        { status: 403 }
+      );
+    }
+
+    const [existingEmail, existingMatricule] = await Promise.all([
+      prisma.user.findUnique({ where: { email: body.email } }),
+      prisma.user.findUnique({ where: { matricule: body.matricule } }),
+    ]);
 
     if (existingEmail) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "User with this email already exists",
-        },
+        { success: false, message: "Cet email est déjà utilisé" },
         { status: 409 }
       );
     }
-
-    // Check if matricule already exists
-    const existingMatricule = await prisma.user.findUnique({
-      where: { matricule: body.matricule },
-    });
 
     if (existingMatricule) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Matricule already exists",
-        },
+        { success: false, message: "Ce matricule est déjà utilisé" },
         { status: 409 }
       );
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(body.password, 10);
 
-    // Create user
     const user = await prisma.user.create({
       data: {
         firstName: body.firstName,
@@ -137,43 +139,19 @@ export async function POST(request: NextRequest) {
         email: body.email,
         phone: body.phone,
         matricule: body.matricule,
-        department: body.department,
         password: hashedPassword,
-        role: body.role || "EMPLOYEE",
+        role: requestedRole,
         isActive: true,
       },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        matricule: true,
-        department: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: USER_SELECT,
     });
 
     return NextResponse.json(
-      {
-        success: true,
-        message: "User created successfully",
-        data: user,
-      },
+      { success: true, message: "Utilisateur créé avec succès", data: user },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error creating user:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to create user",
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    const { status, body } = toApiError(error);
+    return NextResponse.json(body, { status });
   }
 }
