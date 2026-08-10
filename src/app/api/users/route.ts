@@ -9,10 +9,33 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
+    const role = searchParams.get("role");
+    const department = searchParams.get("department");
+    const search = searchParams.get("search");
     const skip = (page - 1) * limit;
+
+    const where: any = {};
+
+    if (role) {
+      where.role = role;
+    }
+
+    if (department) {
+      where.department = department;
+    }
+
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: "insensitive" } },
+        { lastName: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+        { matricule: { contains: search, mode: "insensitive" } },
+      ];
+    }
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
+        where,
         skip,
         take: limit,
         select: {
@@ -22,13 +45,15 @@ export async function GET(request: NextRequest) {
           email: true,
           phone: true,
           matricule: true,
+          department: true,
           role: true,
           isActive: true,
           createdAt: true,
           updatedAt: true,
         },
+        orderBy: { createdAt: "desc" },
       }),
-      prisma.user.count(),
+      prisma.user.count({ where }),
     ]);
 
     return NextResponse.json({
@@ -71,16 +96,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    // Check if user already exists by email
+    const existingEmail = await prisma.user.findUnique({
       where: { email: body.email },
     });
 
-    if (existingUser) {
+    if (existingEmail) {
       return NextResponse.json(
         {
           success: false,
           message: "User with this email already exists",
+        },
+        { status: 409 }
+      );
+    }
+
+    // Check if matricule already exists
+    const existingMatricule = await prisma.user.findUnique({
+      where: { matricule: body.matricule },
+    });
+
+    if (existingMatricule) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Matricule already exists",
         },
         { status: 409 }
       );
@@ -97,8 +137,9 @@ export async function POST(request: NextRequest) {
         email: body.email,
         phone: body.phone,
         matricule: body.matricule,
+        department: body.department,
         password: hashedPassword,
-        role: body.role || "USER",
+        role: body.role || "EMPLOYEE",
         isActive: true,
       },
       select: {
@@ -108,6 +149,7 @@ export async function POST(request: NextRequest) {
         email: true,
         phone: true,
         matricule: true,
+        department: true,
         role: true,
         isActive: true,
         createdAt: true,
