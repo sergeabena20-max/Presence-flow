@@ -1,40 +1,48 @@
-import { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "./prisma";
+import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import { prisma } from "@/lib/prisma";
 import * as bcrypt from "bcryptjs";
 
-export const authOptions: NextAuthOptions = {
+/**
+ * NextAuth v5 (Auth.js) configuration.
+ *
+ * `auth()` est l'helper serveur utilisé dans les Server Components, Server
+ * Actions, Route Handlers et le middleware pour lire la session courante.
+ * Le secret est lu automatiquement depuis process.env.AUTH_SECRET.
+ */
+export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
-    CredentialsProvider({
+    Credentials({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Invalid credentials");
+        const email = credentials?.email as string | undefined;
+        const password = credentials?.password as string | undefined;
+
+        if (!email || !password) {
+          return null;
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email },
         });
 
         if (!user) {
-          throw new Error("User not found");
+          return null;
         }
 
         if (!user.isActive) {
-          throw new Error("User account is inactive");
+          // Refuse le login pour un compte désactivé sans donner de détails.
+          return null;
         }
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
+        const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
-          throw new Error("Invalid password");
+          return null;
         }
 
         return {
@@ -51,7 +59,9 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = user.id as string;
+        token.firstName = (user as any).firstName;
+        token.lastName = (user as any).lastName;
         token.role = (user as any).role;
         token.isActive = (user as any).isActive;
       }
@@ -59,12 +69,11 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user = {
-          ...session.user,
-          id: token.id as string,
-          role: token.role as string,
-          isActive: token.isActive as boolean,
-        };
+        session.user.id = token.id as string;
+        (session.user as any).firstName = token.firstName;
+        (session.user as any).lastName = token.lastName;
+        (session.user as any).role = token.role;
+        (session.user as any).isActive = token.isActive;
       }
       return session;
     },
@@ -75,9 +84,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 24 * 60 * 60, // 24 hours
+    maxAge: 24 * 60 * 60, // 24h
   },
-  jwt: {
-    secret: process.env.NEXTAUTH_SECRET,
-  },
-};
+  trustHost: true,
+});
