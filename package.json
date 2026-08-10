@@ -9,7 +9,7 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "node prisma/seed.ts",
+    "prisma:seed": "tsx prisma/seed.ts",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
@@ -25,7 +25,6 @@
     "lucide-react": "^0.294.0",
     "@prisma/client": "^5.7.1",
     "bcryptjs": "^2.4.3",
-    "iron-session": "^8.0.2",
     "next-auth": "^5.0.0-beta.20"
   },
   "devDependencies": {
@@ -38,7 +37,6 @@
     "postcss": "^8.4.32",
     "autoprefixer": "^10.4.16",
     "prisma": "^5.7.1",
-    "tsx": "^4.7.0",
-    "@types/iron-session": "^8.0.5"
+    "tsx": "^4.7.0"
   }
 }
