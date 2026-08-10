@@ -117,3 +117,72 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
+
+/**
+ * Leave types for leave management
+ */
+export interface LeaveDTO {
+  id: string;
+  userId: string;
+  leaveType: "ANNUAL" | "SICK" | "UNPAID" | "MATERNITY" | "OTHER";
+  startDate: Date;
+  endDate: Date;
+  reason?: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  approverEmail?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Create leave input
+ */
+export interface CreateLeaveInput {
+  userId: string;
+  leaveType: "ANNUAL" | "SICK" | "UNPAID" | "MATERNITY" | "OTHER";
+  startDate: Date;
+  endDate: Date;
+  reason?: string;
+}
+
+/**
+ * Update leave input
+ */
+export interface UpdateLeaveInput {
+  leaveType?: "ANNUAL" | "SICK" | "UNPAID" | "MATERNITY" | "OTHER";
+  startDate?: Date;
+  endDate?: Date;
+  reason?: string;
+  status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  approverEmail?: string;
+}
+
+/**
+ * Department types
+ */
+export interface DepartmentDTO {
+  id: string;
+  name: string;
+  description?: string;
+  managerEmail?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Create department input
+ */
+export interface CreateDepartmentInput {
+  name: string;
+  description?: string;
+  managerEmail?: string;
+}
+
+/**
+ * Update department input
+ */
+export interface UpdateDepartmentInput {
+  name?: string;
+  description?: string;
+  managerEmail?: string;
+}
