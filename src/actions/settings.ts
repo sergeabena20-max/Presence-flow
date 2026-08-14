@@ -13,7 +13,7 @@ export interface ActionResult {
 // Il ne doit exister qu'UN seul enregistrement Settings (section 6). On
 // l'impose au niveau applicatif avec un id fixe et connu + un upsert,
 // plutôt qu'un "findFirst puis create" sujet aux races.
-const SETTINGS_ID = "facility-settings-singleton";
+import { SETTINGS_ID } from "@/lib/constants";
 
 function timeStringToDate(hhmm: string): Date {
   const [hours, minutes] = hhmm.split(":").map(Number);
