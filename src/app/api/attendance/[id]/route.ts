@@ -6,13 +6,14 @@ import { requireUser, requirePermission, toApiError } from "@/lib/permissions";
 // Volontairement en lecture seule : les présences ne sont jamais modifiées à la main.
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await requireUser();
 
     const attendance = await prisma.attendance.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         user: { select: { id: true, firstName: true, lastName: true, matricule: true } },
       },
