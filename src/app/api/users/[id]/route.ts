@@ -20,17 +20,18 @@ const USER_SELECT = {
 // GET un utilisateur par ID — lui-même, ou SUPER_ADMIN/ADMIN avec MANAGE_USERS
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     try {
-      await requireSelfOrSuperAdmin(params.id);
+      await requireSelfOrSuperAdmin(id);
     } catch {
       await requirePermission("MANAGE_USERS");
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: USER_SELECT,
     });
 
@@ -56,13 +57,14 @@ export async function GET(
 // Le Super Administrateur ne peut jamais être modifié via cette route.
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const currentUser = await requirePermission("MANAGE_USERS");
 
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingUser) {
@@ -136,7 +138,7 @@ export async function PUT(
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       select: USER_SELECT,
     });
@@ -155,12 +157,13 @@ export async function PUT(
 // DELETE (soft delete: isActive = false) — SUPER_ADMIN ou ADMIN avec MANAGE_USERS
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await requirePermission("MANAGE_USERS");
 
-    const user = await prisma.user.findUnique({ where: { id: params.id } });
+    const user = await prisma.user.findUnique({ where: { id } });
 
     if (!user) {
       return NextResponse.json(
@@ -177,7 +180,7 @@ export async function DELETE(
     }
 
     const deletedUser = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive: false },
       select: USER_SELECT,
     });
