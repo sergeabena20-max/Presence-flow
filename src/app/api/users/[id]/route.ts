@@ -19,7 +19,7 @@ const USER_SELECT = {
 
 // GET un utilisateur par ID — lui-même, ou SUPER_ADMIN/ADMIN avec MANAGE_USERS
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -156,7 +156,7 @@ export async function PUT(
 
 // DELETE (soft delete: isActive = false) — SUPER_ADMIN ou ADMIN avec MANAGE_USERS
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
