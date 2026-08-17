@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, requirePermission, toApiError } from "@/lib/permissions";
 
 // GET une présence — le propriétaire, ou SUPER_ADMIN/ADMIN avec VIEW_ATTENDANCE.
 // Volontairement en lecture seule : les présences ne sont jamais modifiées à la main.
 export async function GET(
-  request: NextRequest,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
