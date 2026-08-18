@@ -4,6 +4,10 @@ const nextConfig = {
   typescript: {
     tsconfigPath: "./tsconfig.json",
   },
+  eslint: {
+    // Pas de config ESLint dans ce repo — ne doit pas bloquer le build.
+    ignoreDuringBuilds: true,
+  },
 };
 
 module.exports = nextConfig;
