@@ -22,6 +22,7 @@ export default async function DashboardPage() {
   const session = await getSession()
 
   if (!session) redirect("/login")
+  if (session.mustChangePassword) redirect("/dashboard/changer-mot-de-passe")
 
   const isSuperAdmin = session.role === "SUPER_ADMIN"
   const today = getTodayDate()
