@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 
 const ORGANIZATION_TYPES = [
   "COMPANY",
@@ -14,23 +14,16 @@ const ORGANIZATION_TYPES = [
 export async function POST(request: Request) {
   const session = await getSession()
 
-  if (!session) {
-    return NextResponse.json({ error: "Non authentifié." }, { status: 401 })
-  }
-
-  if (session.role !== "SUPER_ADMIN") {
-    return NextResponse.json({ error: "Accès interdit." }, { status: 403 })
-  }
+  if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 })
+  if (session.role !== "SUPER_ADMIN") return NextResponse.json({ error: "Accès interdit." }, { status: 403 })
 
   try {
     const body = await request.json()
-
     const name = typeof body.name === "string" ? body.name.trim() : ""
     const type = typeof body.type === "string" ? body.type : ""
     const phone = typeof body.phone === "string" ? body.phone.trim() : ""
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : ""
     const address = typeof body.address === "string" ? body.address.trim() : ""
-
     const adminFirstName = typeof body.adminFirstName === "string" ? body.adminFirstName.trim() : ""
     const adminLastName = typeof body.adminLastName === "string" ? body.adminLastName.trim() : ""
     const adminEmail = typeof body.adminEmail === "string" ? body.adminEmail.trim().toLowerCase() : ""
@@ -38,10 +31,7 @@ export async function POST(request: Request) {
     const adminPassword = typeof body.adminPassword === "string" ? body.adminPassword : ""
 
     if (!name || !type || !adminFirstName || !adminLastName || !adminEmail || !adminPassword) {
-      return NextResponse.json(
-        { error: "Veuillez remplir tous les champs obligatoires." },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: "Veuillez remplir tous les champs obligatoires." }, { status: 400 })
     }
 
     if (!(ORGANIZATION_TYPES as readonly string[]).includes(type)) {
@@ -49,22 +39,12 @@ export async function POST(request: Request) {
     }
 
     if (adminPassword.length < 8) {
-      return NextResponse.json(
-        { error: "Le mot de passe de l’administrateur doit contenir au moins 8 caractères." },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: "Le mot de passe de l’administrateur doit contenir au moins 8 caractères." }, { status: 400 })
     }
 
-    const existingAdmin = await prisma.user.findUnique({
-      where: { email: adminEmail },
-      select: { id: true },
-    })
-
+    const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail }, select: { id: true } })
     if (existingAdmin) {
-      return NextResponse.json(
-        { error: "Cette adresse e-mail administrateur est déjà utilisée." },
-        { status: 409 },
-      )
+      return NextResponse.json({ error: "Cette adresse e-mail administrateur est déjà utilisée." }, { status: 409 })
     }
 
     const passwordHash = await bcrypt.hash(adminPassword, 12)
@@ -92,29 +72,16 @@ export async function POST(request: Request) {
           phone: adminPhone || null,
           role: "ADMIN",
           isActive: true,
-          mustChangePassword: false,
+          mustChangePassword: true,
         },
       })
 
       return createdOrganization
     })
 
-    return NextResponse.json(
-      {
-        success: true,
-        organization: {
-          id: organization.id,
-          name: organization.name,
-        },
-      },
-      { status: 201 },
-    )
+    return NextResponse.json({ success: true, organization: { id: organization.id, name: organization.name } }, { status: 201 })
   } catch (error) {
     console.error("Organization creation error:", error)
-
-    return NextResponse.json(
-      { error: "Impossible de créer l’organisation pour le moment." },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: "Impossible de créer l’organisation pour le moment." }, { status: 500 })
   }
 }
