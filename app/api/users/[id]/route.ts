@@ -27,9 +27,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
     if (body.isActive !== undefined) data.isActive = Boolean(body.isActive)
     if (body.departmentId !== undefined) {
-      const departmentId = typeof body.departmentId === "string" && body.departmentId ? body.departmentId : null
+      const departmentId = typeof body.departmentId === "string" && body.departmentId.trim() ? body.departmentId.trim() : null
       if (departmentId) {
-        const department = await prisma.department.findFirst({ where: { id: departmentId, organizationId: auth.session.organizationId }, select: { id: true } })
+        const department = await prisma.department.findFirst({ where: { id: departmentId, organizationId: auth.session.organizationId! }, select: { id: true } })
         if (!department) return NextResponse.json({ error: "Département invalide." }, { status: 400 })
       }
       data.departmentId = departmentId
