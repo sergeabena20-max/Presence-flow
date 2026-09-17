@@ -9,6 +9,7 @@ export type SessionPayload = {
   userId: string
   role: UserRole
   organizationId: string | null
+  mustChangePassword: boolean
 }
 
 function getSecretKey() {
@@ -65,6 +66,7 @@ export async function getSession(): Promise<SessionPayload | null> {
         typeof payload.organizationId === "string"
           ? payload.organizationId
           : null,
+      mustChangePassword: payload.mustChangePassword === true,
     }
   } catch {
     return null
