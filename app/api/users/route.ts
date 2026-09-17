@@ -17,7 +17,7 @@ export async function GET() {
   if ("error" in auth) return auth.error
 
   const users = await prisma.user.findMany({
-    where: { organizationId: auth.session.organizationId },
+    where: { organizationId: auth.session.organizationId, role: "USER" },
     select: {
       id: true, email: true, firstName: true, lastName: true, phone: true,
       matricule: true, role: true, functionTitle: true, isActive: true,
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const matricule = typeof body.matricule === "string" ? body.matricule.trim() : ""
     const functionTitle = typeof body.functionTitle === "string" ? body.functionTitle.trim() : ""
     const password = typeof body.password === "string" ? body.password : ""
-    const departmentId = typeof body.departmentId === "string" && body.departmentId ? body.departmentId : null
+    const departmentId = typeof body.departmentId === "string" && body.departmentId.trim() ? body.departmentId.trim() : null
 
     if (!firstName || !lastName || !email || !password) {
       return NextResponse.json({ error: "Nom, prénom, e-mail et mot de passe sont obligatoires." }, { status: 400 })
@@ -55,7 +55,10 @@ export async function POST(request: Request) {
     if (existing) return NextResponse.json({ error: "Cette adresse e-mail est déjà utilisée." }, { status: 409 })
 
     if (departmentId) {
-      const department = await prisma.department.findFirst({ where: { id: departmentId, organizationId: auth.session.organizationId }, select: { id: true } })
+      const department = await prisma.department.findFirst({
+        where: { id: departmentId, organizationId: auth.session.organizationId! },
+        select: { id: true },
+      })
       if (!department) return NextResponse.json({ error: "Département invalide." }, { status: 400 })
     }
 
