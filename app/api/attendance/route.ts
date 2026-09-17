@@ -26,7 +26,7 @@ function timeToMinutes(value: string) {
 export async function POST(request: Request) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 })
-  if (session.role === "SUPER_ADMIN" || !session.organizationId) return NextResponse.json({ error: "Seul un utilisateur d’une organisation peut pointer une présence." }, { status: 403 })
+  if (session.role !== "USER" || !session.organizationId) return NextResponse.json({ error: "Seul un utilisateur d’une organisation peut pointer une présence." }, { status: 403 })
 
   try {
     const body = await request.json()
@@ -56,7 +56,6 @@ export async function POST(request: Request) {
 
     const existing = await prisma.attendance.findUnique({ where: { userId_attendanceDate: { userId: user.id, attendanceDate: today } } })
 
-    // L'arrivée est irréversible : une fois enregistrée, elle ne peut pas être annulée.
     if (!existing || !existing.checkInAt) {
       if (existing?.checkOutAt) return NextResponse.json({ error: "Votre départ a déjà été enregistré pour aujourd’hui. L’arrivée ne peut plus être ajoutée." }, { status: 409 })
       if (currentMinutes > checkInDeadline) return NextResponse.json({ error: `Le délai de pointage d’arrivée est dépassé. L’arrivée était possible jusqu’à ${organization.workStartTime} + ${organization.checkInToleranceMinutes} min. Vous pouvez toutefois enregistrer votre départ à partir de ${organization.workEndTime}.` }, { status: 403 })
