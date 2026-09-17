@@ -7,15 +7,13 @@
 -- 2. Copier-coller TOUT ce fichier
 -- 3. Exécuter une seule fois sur une base vide
 --
--- Compte Super Administrateur initial :
---   Email    : admin@presence-flow.cm
---   Mot de passe : Presence@2026
+-- Le compte Super Administrateur initial est créé automatiquement.
+-- Son mot de passe est généré aléatoirement par PostgreSQL et son
+-- hash bcrypt est enregistré dans la base.
 --
--- Le mot de passe n'est PAS stocké en clair : PostgreSQL génère
--- directement un hash bcrypt grâce à pgcrypto.
---
--- Après la première connexion, modifiez le mot de passe depuis
--- l'application avant de mettre le compte en production.
+-- IMPORTANT : après exécution, le résultat de la dernière requête
+-- SELECT affiche le mot de passe initial. Notez-le puis changez-le
+-- depuis l'application après votre première connexion.
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -193,35 +191,50 @@ CREATE INDEX IF NOT EXISTS "Attendance_userId_attendanceDate_idx"
 -- SUPER ADMINISTRATEUR INITIAL
 -- ------------------------------------------------------------
 --
--- Le compte est créé uniquement s'il n'existe pas déjà.
--- Le hash est généré avec bcrypt (cost 12) dans PostgreSQL.
--- L'organisation reste NULL : le Super Admin appartient à la
--- plateforme et non à une organisation particulière.
+-- Le mot de passe est généré dans Neon avec 18 octets aléatoires
+-- encodés en hexadécimal, puis transformé en hash bcrypt.
+-- Le mot de passe en clair n'est jamais enregistré dans le dépôt.
 -- ------------------------------------------------------------
 
-INSERT INTO "User" (
-  "id",
-  "organizationId",
-  "email",
-  "passwordHash",
-  "firstName",
-  "lastName",
-  "role",
-  "isActive",
-  "mustChangePassword"
+WITH candidate AS (
+  SELECT encode(gen_random_bytes(18), 'hex') AS initial_password
+), inserted AS (
+  INSERT INTO "User" (
+    "id",
+    "organizationId",
+    "email",
+    "passwordHash",
+    "firstName",
+    "lastName",
+    "role",
+    "isActive",
+    "mustChangePassword"
+  )
+  SELECT
+    'super-admin-initial',
+    NULL,
+    'admin@presence-flow.cm',
+    crypt(candidate.initial_password, gen_salt('bf', 12)),
+    'Super',
+    'Administrateur',
+    'SUPER_ADMIN',
+    TRUE,
+    TRUE
+  FROM candidate
+  ON CONFLICT ("email") DO NOTHING
+  RETURNING "email"
 )
-VALUES (
-  'super-admin-initial',
-  NULL,
-  'admin@presence-flow.cm',
-  crypt('Presence@2026', gen_salt('bf', 12)),
-  'Super',
-  'Administrateur',
-  'SUPER_ADMIN',
-  TRUE,
-  TRUE
-)
-ON CONFLICT ("email") DO NOTHING;
+SELECT
+  CASE
+    WHEN inserted."email" IS NOT NULL THEN 'COMPTE SUPER ADMIN CRÉÉ — utilisez le mot de passe affiché puis changez-le.'
+    ELSE 'LE COMPTE SUPER ADMIN EXISTE DÉJÀ — aucun nouveau mot de passe n’a été généré pour ce compte.'
+  END AS "resultat",
+  CASE
+    WHEN inserted."email" IS NOT NULL THEN candidate.initial_password
+    ELSE NULL
+  END AS "mot_de_passe_initial"
+FROM candidate
+LEFT JOIN inserted ON TRUE;
 
 -- ============================================================
 -- FIN DE L'INITIALISATION
