@@ -3,6 +3,52 @@ import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { createSession } from "@/lib/auth"
 
+async function ensureConfiguredSuperAdmin(email: string) {
+  const configuredEmail = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase()
+  const configuredPassword = process.env.SUPER_ADMIN_PASSWORD
+
+  if (!configuredEmail || !configuredPassword || email !== configuredEmail) {
+    return null
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email: configuredEmail },
+    select: {
+      id: true,
+      passwordHash: true,
+      role: true,
+      organizationId: true,
+      isActive: true,
+      mustChangePassword: true,
+    },
+  })
+
+  if (existingUser) return existingUser
+
+  const passwordHash = await bcrypt.hash(configuredPassword, 12)
+
+  return prisma.user.create({
+    data: {
+      id: "super-admin-env",
+      email: configuredEmail,
+      passwordHash,
+      firstName: "Super",
+      lastName: "Administrateur",
+      role: "SUPER_ADMIN",
+      isActive: true,
+      mustChangePassword: false,
+    },
+    select: {
+      id: true,
+      passwordHash: true,
+      role: true,
+      organizationId: true,
+      isActive: true,
+      mustChangePassword: true,
+    },
+  })
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -13,7 +59,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email et mot de passe requis." }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await ensureConfiguredSuperAdmin(email) ?? await prisma.user.findUnique({
       where: { email },
       select: {
         id: true,
