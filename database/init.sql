@@ -7,13 +7,11 @@
 -- 2. Copier-coller TOUT ce fichier
 -- 3. Exécuter une seule fois sur une base vide
 --
--- Le compte Super Administrateur initial est créé automatiquement.
--- Son mot de passe est généré aléatoirement par PostgreSQL et son
--- hash bcrypt est enregistré dans la base.
---
--- IMPORTANT : après exécution, le résultat de la dernière requête
--- SELECT affiche le mot de passe initial. Notez-le puis changez-le
--- depuis l'application après votre première connexion.
+-- IMPORTANT : ce fichier initialise uniquement la structure de la
+-- base. Le Super Administrateur est créé automatiquement par
+-- l'application lors de la première connexion avec les identifiants
+-- définis dans les variables Vercel SUPER_ADMIN_EMAIL et
+-- SUPER_ADMIN_PASSWORD.
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -186,55 +184,6 @@ CREATE INDEX IF NOT EXISTS "Attendance_organizationId_attendanceDate_idx"
 
 CREATE INDEX IF NOT EXISTS "Attendance_userId_attendanceDate_idx"
   ON "Attendance"("userId", "attendanceDate");
-
--- ------------------------------------------------------------
--- SUPER ADMINISTRATEUR INITIAL
--- ------------------------------------------------------------
---
--- Le mot de passe est généré dans Neon avec 18 octets aléatoires
--- encodés en hexadécimal, puis transformé en hash bcrypt.
--- Le mot de passe en clair n'est jamais enregistré dans le dépôt.
--- ------------------------------------------------------------
-
-WITH candidate AS (
-  SELECT encode(gen_random_bytes(18), 'hex') AS initial_password
-), inserted AS (
-  INSERT INTO "User" (
-    "id",
-    "organizationId",
-    "email",
-    "passwordHash",
-    "firstName",
-    "lastName",
-    "role",
-    "isActive",
-    "mustChangePassword"
-  )
-  SELECT
-    'super-admin-initial',
-    NULL,
-    'admin@presence-flow.cm',
-    crypt(candidate.initial_password, gen_salt('bf', 12)),
-    'Super',
-    'Administrateur',
-    'SUPER_ADMIN',
-    TRUE,
-    TRUE
-  FROM candidate
-  ON CONFLICT ("email") DO NOTHING
-  RETURNING "email"
-)
-SELECT
-  CASE
-    WHEN inserted."email" IS NOT NULL THEN 'COMPTE SUPER ADMIN CRÉÉ — utilisez le mot de passe affiché puis changez-le.'
-    ELSE 'LE COMPTE SUPER ADMIN EXISTE DÉJÀ — aucun nouveau mot de passe n’a été généré pour ce compte.'
-  END AS "resultat",
-  CASE
-    WHEN inserted."email" IS NOT NULL THEN candidate.initial_password
-    ELSE NULL
-  END AS "mot_de_passe_initial"
-FROM candidate
-LEFT JOIN inserted ON TRUE;
 
 -- ============================================================
 -- FIN DE L'INITIALISATION
