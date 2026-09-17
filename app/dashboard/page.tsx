@@ -133,6 +133,7 @@ function QuickActions({ isSuperAdmin }: { isSuperAdmin: boolean }) {
       </div>
       <div className="action-grid">
         {isSuperAdmin && <a className="action-card" href="/dashboard/organisations"><span className="action-icon">⌘</span><div><strong>Organisations</strong><p>Créer et gérer les organisations.</p></div><span>→</span></a>}
+        {!isSuperAdmin && <a className="action-card" href="/dashboard/administrateurs"><span className="action-icon">♙</span><div><strong>Administrateurs</strong><p>Gérer les comptes administrateurs de votre organisation.</p></div><span>→</span></a>}
         <a className="action-card" href="/dashboard/personnel"><span className="action-icon">♙</span><div><strong>Personnel</strong><p>Gérer les utilisateurs de votre espace.</p></div><span>→</span></a>
         <a className="action-card" href="/dashboard/presences"><span className="action-icon">✓</span><div><strong>Présences</strong><p>Consulter les pointages et l’historique.</p></div><span>→</span></a>
         <a className="action-card" href="/dashboard/parametres"><span className="action-icon">⚙</span><div><strong>Paramètres</strong><p>Configurer le lieu et la géolocalisation.</p></div><span>→</span></a>
