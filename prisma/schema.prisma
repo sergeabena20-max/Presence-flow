@@ -28,97 +28,100 @@ enum AttendanceStatus {
 }
 
 model Organization {
-  id             String           @id @default(cuid())
-  name           String
-  type           OrganizationType
-  logoUrl        String?
-  phone          String?
-  email          String?
-  address        String?
-  latitude       Float?
-  longitude      Float?
-  allowedRadiusM Int              @default(100)
-  timezone       String           @default("Africa/Douala")
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  id                      String           @id @default(cuid())
+  name                    String
+  type                    OrganizationType
+  logoUrl                 String?
+  phone                   String?
+  email                   String?
+  address                 String?
+  latitude                Float?
+  longitude               Float?
+  allowedRadiusM          Int              @default(100)
+  workStartTime           String           @default("08:00")
+  checkInToleranceMinutes Int              @default(30)
+  workEndTime             String           @default("17:00")
+  timezone                String           @default("Africa/Douala")
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
 
-  users          User[]
-  departments    Department[]
-  attendances    Attendance[]
+  users                  User[]
+  departments            Department[]
+  attendances            Attendance[]
 
   @@index([type])
 }
 
 model User {
-  id              String       @id @default(cuid())
-  organizationId  String?
-  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                 String        @id @default(cuid())
+  organizationId     String?
+  organization       Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  email           String       @unique
-  passwordHash    String
-  firstName       String
-  lastName        String
-  phone           String?
-  matricule       String?
-  role            UserRole     @default(USER)
-  functionTitle   String?
-  isActive        Boolean      @default(true)
-  mustChangePassword Boolean   @default(false)
+  email              String        @unique
+  passwordHash       String
+  firstName          String
+  lastName           String
+  phone              String?
+  matricule           String?
+  role               UserRole      @default(USER)
+  functionTitle      String?
+  isActive           Boolean       @default(true)
+  mustChangePassword Boolean       @default(false)
 
-  departmentId    String?
-  department      Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
-  attendances     Attendance[]
+  attendances Attendance[]
 
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([organizationId])
   @@index([departmentId])
 }
 
 model Department {
-  id              String       @id @default(cuid())
-  organizationId  String
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  name            String
-  users           User[]
+  name  String
+  users User[]
 
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([organizationId, name])
   @@index([organizationId])
 }
 
 model Attendance {
-  id                 String            @id @default(cuid())
+  id                 String           @id @default(cuid())
   organizationId     String
-  organization       Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization       Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  userId             String
-  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  attendanceDate     DateTime          @db.Date
-  checkInAt          DateTime?
-  checkOutAt         DateTime?
+  attendanceDate DateTime @db.Date
+  checkInAt      DateTime?
+  checkOutAt     DateTime?
 
-  status             AttendanceStatus  @default(PRESENT)
+  status AttendanceStatus @default(PRESENT)
 
-  checkInLat         Float?
-  checkInLng         Float?
-  checkInDistanceM   Float?
-  checkInAccuracyM   Float?
+  checkInLat       Float?
+  checkInLng       Float?
+  checkInDistanceM Float?
+  checkInAccuracyM Float?
 
-  checkOutLat        Float?
-  checkOutLng        Float?
-  checkOutDistanceM  Float?
-  checkOutAccuracyM  Float?
+  checkOutLat       Float?
+  checkOutLng       Float?
+  checkOutDistanceM Float?
+  checkOutAccuracyM Float?
 
-  verification       String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  verification String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@unique([userId, attendanceDate])
   @@index([organizationId, attendanceDate])
