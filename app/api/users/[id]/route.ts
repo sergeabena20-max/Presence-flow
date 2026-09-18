@@ -6,10 +6,15 @@ import { prisma } from "@/lib/prisma"
 async function authorize(id: string) {
   const session = await getSession()
   if (!session) return { error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }) }
-  if (session.role !== "ADMIN" || !session.organizationId) {
+  if (!["ADMIN", "SUPER_ADMIN"].includes(session.role)) {
     return { error: NextResponse.json({ error: "Accès interdit." }, { status: 403 }) }
   }
-  const user = await prisma.user.findFirst({ where: { id, organizationId: session.organizationId } })
+  if (session.role === "ADMIN" && !session.organizationId) {
+    return { error: NextResponse.json({ error: "Organisation introuvable." }, { status: 403 }) }
+  }
+  const user = await prisma.user.findFirst({
+    where: { id, role: "USER", ...(session.role === "ADMIN" ? { organizationId: session.organizationId! } : {}) },
+  })
   if (!user) return { error: NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 }) }
   return { session, user }
 }
