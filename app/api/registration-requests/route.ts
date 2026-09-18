@@ -92,6 +92,7 @@ export async function PATCH(request: Request) {
           passwordHash: registration.passwordHash,
           phone: registration.phone,
           matricule: registration.matricule,
+          className: registration.className,
           functionTitle: registration.functionTitle,
           role: "USER",
           isActive: true,
