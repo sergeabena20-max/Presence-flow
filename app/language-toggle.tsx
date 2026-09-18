@@ -1,3 +1,7 @@
+"use client"
+
+import { useEffect, useState } from "react"
+
 const translations: Record<string, string> = {
   "Navigation principale":"Main navigation",
   "Se connecter":"Log in",
