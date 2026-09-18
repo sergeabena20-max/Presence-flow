@@ -41,8 +41,6 @@ const translations: Record<string, string> = {
   "Annuler":"Cancel","Enregistrement…":"Saving…","Envoi de la demande…":"Sending request…",
   "Le Super Administrateur gère les comptes administrateurs de toutes les organisations. Un administrateur gère uniquement son organisation.":"The Super Administrator manages administrator accounts for all organizations. An administrator only manages their own organization.",
   "Gérer les utilisateurs inscrits.":"Manage registered users.","Administrateurs":"Administrators","Présences":"Attendance",
-}
-
   "Bonjour":"Hello",
   "Bonjour {user.firstName}":"Hello {user.firstName}",
   "Gérez les présences.":"Manage attendance.",
