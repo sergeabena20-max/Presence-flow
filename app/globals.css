@@ -339,3 +339,17 @@ html[data-theme="dark"] .primary-button { color:#03131e; }
 @media(prefers-reduced-motion:reduce){
   .theme-toggle { transition:none; }
 }
+
+html[data-theme="dark"] .hero-widget {
+  color:#edf8ff;
+  border-color:rgba(105,197,235,.25);
+  background:rgba(10,31,45,.86);
+  box-shadow:0 22px 55px rgba(0,0,0,.30);
+}
+html[data-theme="dark"] .hero-widget small { color:#8fa9ba; }
+html[data-theme="dark"] .widget-mini-icon { background:#0b3a34; color:#6ee4c1; }
+html[data-theme="dark"] .landing-feature-icon { background:#123a50; color:#70cff7; }
+html[data-theme="dark"] .preview-heading strong,
+html[data-theme="dark"] .preview-panel-title strong,
+html[data-theme="dark"] .preview-row strong { color:#edf8ff; }
+html[data-theme="dark"] .preview-stats strong { background:linear-gradient(135deg,#edf8ff,#62c9f5); -webkit-background-clip:text; background-clip:text; }
