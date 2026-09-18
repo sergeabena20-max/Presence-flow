@@ -8,47 +8,39 @@ function getDoualaDateKey(date = new Date()) {
   return `${values.year}-${values.month}-${values.day}`
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 })
-  if (!session.organizationId) return NextResponse.json({ error: "Organisation requise." }, { status: 403 })
+  const url = new URL(request.url)
+  const requestedOrganizationId = url.searchParams.get("organizationId")?.trim()
+  if (session.role === "USER" && !session.organizationId) return NextResponse.json({ error: "Organisation requise." }, { status: 403 })
+  if (session.role === "ADMIN" && !session.organizationId) return NextResponse.json({ error: "Organisation requise." }, { status: 403 })
+  if (session.role === "USER" && requestedOrganizationId && requestedOrganizationId !== session.organizationId) return NextResponse.json({ error: "Accès interdit." }, { status: 403 })
+  if (session.role === "ADMIN" && requestedOrganizationId && requestedOrganizationId !== session.organizationId) return NextResponse.json({ error: "Accès interdit." }, { status: 403 })
 
+  const organizationId = session.role === "SUPER_ADMIN" ? requestedOrganizationId || undefined : session.organizationId!
   const attendanceDate = new Date(`${getDoualaDateKey()}T00:00:00.000Z`)
 
   try {
     const attendances = await prisma.attendance.findMany({
       where: {
-        organizationId: session.organizationId,
+        ...(organizationId ? { organizationId } : {}),
         attendanceDate,
         ...(session.role === "USER" ? { userId: session.userId } : {}),
       },
       select: {
-        id: true,
-        status: true,
-        checkInAt: true,
-        checkOutAt: true,
-        checkInDistanceM: true,
-        checkOutDistanceM: true,
-        checkInAccuracyM: true,
-        checkOutAccuracyM: true,
-        verification: true,
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            matricule: true,
-            functionTitle: true,
-            department: { select: { name: true } },
-          },
-        },
+        id: true, status: true, checkInAt: true, checkOutAt: true, checkInDistanceM: true, checkOutDistanceM: true,
+        checkInAccuracyM: true, checkOutAccuracyM: true, verification: true,
+        organization: { select: { id: true, name: true } },
+        user: { select: { id: true, firstName: true, lastName: true, email: true, matricule: true, functionTitle: true, department: { select: { name: true } } } },
       },
       orderBy: { checkInAt: "desc" },
-      take: session.role === "USER" ? 1 : 100,
+      take: session.role === "USER" ? 1 : 500,
     })
-
-    return NextResponse.json({ date: getDoualaDateKey(), attendances })
+    const organizations = session.role === "SUPER_ADMIN"
+      ? await prisma.organization.findMany({ select: { id: true, name: true, type: true }, orderBy: { name: "asc" } })
+      : []
+    return NextResponse.json({ date: getDoualaDateKey(), attendances, organizations, role: session.role })
   } catch (error) {
     console.error("Today attendance error:", error)
     return NextResponse.json({ error: "Impossible de charger les présences." }, { status: 500 })
