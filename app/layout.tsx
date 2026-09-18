@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import "./globals.css"
 import ThemeToggle from "./theme-toggle"
+import LanguageToggle from "./language-toggle"
 
 export const metadata: Metadata = {
   title: "Presence-Flow",
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         <ThemeToggle />
+        <LanguageToggle />
         {children}
       </body>
     </html>
