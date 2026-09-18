@@ -19,6 +19,20 @@ const features = [
 ]
 
 const landingAnimationStyles = `
+  .landing-page { min-height:100vh; }
+  .hero-widget { position:absolute; z-index:4; display:flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid rgba(255,255,255,.72); border-radius:15px; background:rgba(255,255,255,.82); backdrop-filter:blur(18px); box-shadow:0 18px 45px rgba(19,93,130,.15); color:#10233f; }
+  .hero-widget b { display:block; font-size:10px; letter-spacing:.6px; }.hero-widget small { display:block; margin-top:3px; color:#718092; font-size:8px; }.hero-widget strong { color:#1597dc; font-size:16px; }
+  .hero-widget-gps { top:48px; right:-35px; animation:pfWidgetGps 4.5s ease-in-out infinite; }.hero-widget-presence { bottom:72px; left:-48px; animation:pfWidgetPresence 5s ease-in-out infinite; }.hero-widget-users { top:205px; left:-62px; display:grid; grid-template-columns:auto 1fr; column-gap:8px; }.hero-widget-users b{font-size:25px; grid-row:span 2; color:#1597dc}.hero-widget-users span{font-size:8px;font-weight:800;letter-spacing:1px}.hero-widget-users small{margin:0;color:#079669}.widget-pulse{width:9px;height:9px;border-radius:50%;background:#12b981;box-shadow:0 0 0 6px rgba(18,185,129,.12);animation:pfDotPulse 1.7s infinite}.widget-mini-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:#e8f8f2;color:#079669;font-weight:900}
+  @keyframes pfWidgetGps {0%,100%{transform:translateY(0) rotate(1deg)}50%{transform:translateY(-9px) rotate(-1deg)}}
+  @keyframes pfWidgetPresence {0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(8px) rotate(1deg)}}
+  .landing-hero-copy { position:relative; z-index:5; }
+  .landing-hero h1 { text-shadow:0 8px 35px rgba(21,151,220,.08); }
+  .landing-visual { perspective:1400px; }
+  .dashboard-preview { transform-style:preserve-3d; }
+  .dashboard-preview::before { content:""; position:absolute; inset:8px; border-radius:16px; border:1px solid rgba(72,185,238,.18); pointer-events:none; transform:translateZ(18px); }
+  .landing-feature-card { transition:transform .35s ease,box-shadow .35s ease; }
+  .landing-feature-card:hover { transform:translateY(-9px) rotateX(2deg); box-shadow:0 24px 55px rgba(20,83,120,.13); }
+
   .landing-nav { animation: pfNavIn .8s ease both; }
   .landing-hero-copy { animation: pfHeroIn .9s .08s ease both; }
   .landing-badge { animation: pfBadgeIn .7s .25s ease both, pfBadgePulse 3.2s 1s ease-in-out infinite; }
