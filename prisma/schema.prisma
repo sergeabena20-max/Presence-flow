@@ -68,7 +68,8 @@ model User {
   firstName          String
   lastName           String
   phone              String?
-  matricule           String?
+  matricule          String?
+  className          String?
   role               UserRole      @default(USER)
   functionTitle      String?
   isActive           Boolean       @default(true)
