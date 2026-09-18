@@ -1,3 +1,9 @@
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'RegistrationStatus') THEN
+    CREATE TYPE "RegistrationStatus" AS ENUM ('PENDING','APPROVED','REJECTED');
+  END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS "RegistrationRequest" (
   "id" TEXT NOT NULL,
   "organizationName" TEXT NOT NULL,
