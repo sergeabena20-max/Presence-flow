@@ -353,3 +353,12 @@ html[data-theme="dark"] .preview-heading strong,
 html[data-theme="dark"] .preview-panel-title strong,
 html[data-theme="dark"] .preview-row strong { color:#edf8ff; }
 html[data-theme="dark"] .preview-stats strong { background:linear-gradient(135deg,#edf8ff,#62c9f5); -webkit-background-clip:text; background-clip:text; }
+
+
+/* Language switcher */
+.language-toggle{position:fixed;top:18px;right:76px;z-index:1000;display:flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid rgba(21,151,220,.22);border-radius:999px;background:rgba(255,255,255,.78);backdrop-filter:blur(16px);color:#17324f;font-size:11px;font-weight:800;letter-spacing:.3px;cursor:pointer;box-shadow:0 10px 28px rgba(19,93,130,.12);transition:transform .2s ease,box-shadow .2s ease}
+.language-toggle:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(19,93,130,.18)}
+.language-toggle span:first-child{display:grid;place-items:center;min-width:25px;height:22px;border-radius:7px;background:#e8f6fd;color:#1597dc}
+html[data-theme="dark"] .language-toggle{background:rgba(12,28,47,.82);border-color:rgba(100,190,240,.28);color:#e8f5ff}
+html[data-theme="dark"] .language-toggle span:first-child{background:rgba(55,170,225,.16);color:#78d0ff}
+@media(max-width:700px){.language-toggle{top:12px;right:64px;padding:7px 9px}.language-toggle span:last-child{display:none}}
