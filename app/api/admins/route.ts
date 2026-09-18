@@ -29,7 +29,18 @@ export async function GET(request: Request) {
       organization: { select: { id: true, name: true, type: true } } },
     orderBy: [{ isActive: "desc" }, { lastName: "asc" }],
   })
-  return NextResponse.json({ admins })
+
+  // Le Super Administrateur reçoit aussi la liste des organisations dans
+  // la même réponse : la page de supervision ne dépend ainsi que d'un seul
+  // appel API pour son chargement initial.
+  const organizations = auth.session.role === "SUPER_ADMIN"
+    ? await prisma.organization.findMany({
+        select: { id: true, name: true, type: true },
+        orderBy: { name: "asc" },
+      })
+    : []
+
+  return NextResponse.json({ admins, organizations })
 }
 
 export async function POST(request: Request) {
