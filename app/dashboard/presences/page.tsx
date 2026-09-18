@@ -13,6 +13,8 @@ type Organization={id:string;name:string;type:string}
 function formatTime(value:string|null){return value?new Intl.DateTimeFormat("fr-FR",{timeZone:"Africa/Douala",hour:"2-digit",minute:"2-digit"}).format(new Date(value)):"—"}
 function formatDistance(value:number|null){return value==null?"—":`${Math.round(value)} m`}
 function statusLabel(status:Attendance["status"]){return status==="LATE"?"En retard":status==="ABSENT"?"Absent":"Présent"}
+function csvCell(value:string){return '"' + value.replace(/"/g,'""') + '"'}
+
 
 export default function PresencesPage(){
   const [attendances,setAttendances]=useState<Attendance[]>([])
@@ -40,10 +42,16 @@ export default function PresencesPage(){
 
   const stats=useMemo(()=>({total:attendances.length,present:attendances.filter(x=>x.status==="PRESENT").length,late:attendances.filter(x=>x.status==="LATE").length,closed:attendances.filter(x=>x.checkOutAt).length}),[attendances])
   const isSuper=role==="SUPER_ADMIN"
+  function exportCsv(){
+    const rows=[["Organisation","Nom","E-mail","Matricule","Fonction","Date","Arrivée","Départ","Statut","Distance arrivée","Distance départ"]]
+    for(const item of attendances) rows.push([item.organization.name, item.user.firstName+" "+item.user.lastName,item.user.email,item.user.matricule||"",item.user.functionTitle||"",date,formatTime(item.checkInAt),formatTime(item.checkOutAt),statusLabel(item.status),formatDistance(item.checkInDistanceM),formatDistance(item.checkOutDistanceM)])
+    const blob=new Blob(["\ufeff"+rows.map(row=>row.map(csvCell).join(";")).join("\n")],{type:"text/csv;charset=utf-8;"})
+    const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="presence-flow-"+date+".csv";a.click();URL.revokeObjectURL(url)
+  }
 
   return <main className="dashboard-page"><div className="dashboard-shell">
     <a className="back-link" href="/dashboard">← Tableau de bord</a>
-    <header className="dashboard-header"><div><p className="dashboard-eyebrow">PRÉSENCES</p><h1>Suivi des présences</h1><p className="dashboard-subtitle">{isSuper?"Supervision des présences des organisations.":"Pointages, arrivées, départs et vérification GPS de votre organisation."}</p></div><button className="secondary-button" type="button" onClick={loadAttendances} disabled={loading}>↻ Actualiser</button></header>
+    <header className="dashboard-header"><div><p className="dashboard-eyebrow">PRÉSENCES</p><h1>Suivi des présences</h1><p className="dashboard-subtitle">{isSuper?"Supervision des présences des organisations.":"Pointages, arrivées, départs et vérification GPS de votre organisation."}</p></div><div className="button-row"><button className="secondary-button" type="button" onClick={loadAttendances} disabled={loading}>↻ Actualiser</button><button className="secondary-button" type="button" onClick={exportCsv} disabled={loading||attendances.length===0}>Exporter CSV</button></div></header>
 
     {isSuper&&<section className="form-card"><div className="form-grid">
       <label>Organisation<select value={organizationId} onChange={e=>setOrganizationId(e.target.value)}><option value="">Toutes les organisations</option>{organizations.map(o=><option key={o.id} value={o.id}>{o.name} · {o.type}</option>)}</select></label>
