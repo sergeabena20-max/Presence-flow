@@ -46,12 +46,12 @@ export default async function OrganisationsPage() {
               {organizations.map((organization) => (
                 <article className="organization-row" key={organization.id}>
                   <div>
-                    <strong>{organization.name}</strong>
+                    <a href={`/dashboard/organisations/${organization.id}`}><strong>{organization.name}</strong></a>
                     <span>{organization.type}</span>
                   </div>
                   <div className="organization-meta">
                     <span>{organization._count.users} utilisateur(s)</span>
-                    <span>{organization._count.attendances} présence(s)</span>
+                    <span>{organization._count.attendances} présence(s)</span><a className="secondary-button" href={`/dashboard/organisations/${organization.id}`}>Superviser →</a>
                   </div>
                 </article>
               ))}
