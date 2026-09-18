@@ -96,3 +96,92 @@ body { background:#f3faff; }
 @media (prefers-reduced-motion:reduce){
   .dashboard-page *, .login-page *, .dashboard-page::before, .login-page::after { animation:none !important; transition:none !important; }
 }
+
+
+/* Presence-Flow — visible 3D upgrade */
+.dashboard-page {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(72,185,238,.18), transparent 26%),
+    radial-gradient(circle at 88% 82%, rgba(21,151,220,.12), transparent 28%),
+    linear-gradient(135deg,#eef9ff 0%,#f9fcff 48%,#eaf7ff 100%);
+}
+.dashboard-shell {
+  width:min(1180px,100%);
+  padding:18px 0 70px;
+}
+.dashboard-page .dashboard-header {
+  padding:26px 28px;
+  border:1px solid rgba(120,197,232,.30);
+  border-radius:24px;
+  background:linear-gradient(135deg,rgba(255,255,255,.86),rgba(234,248,255,.62));
+  box-shadow:0 25px 70px rgba(22,91,128,.12), inset 0 1px 0 rgba(255,255,255,.9);
+  transform:perspective(1200px) rotateX(2deg);
+}
+.dashboard-page .dashboard-welcome {
+  min-height:74px;
+  border-radius:20px;
+  background:linear-gradient(110deg,rgba(255,255,255,.9),rgba(225,246,255,.72));
+  box-shadow:0 18px 45px rgba(22,91,128,.11);
+  animation:pfWelcome 5s ease-in-out infinite;
+}
+.dashboard-page .stats-grid { gap:20px; }
+.dashboard-page .stat-card {
+  min-height:155px;
+  padding:25px;
+  border-radius:22px;
+  border:1px solid rgba(109,191,226,.32);
+  transform-style:preserve-3d;
+  animation:pfStatIn .7s cubic-bezier(.2,.8,.2,1) both;
+}
+.dashboard-page .stat-card:nth-child(2){animation-delay:.08s}
+.dashboard-page .stat-card:nth-child(3){animation-delay:.16s}
+.dashboard-page .stat-card:nth-child(4){animation-delay:.24s}
+.dashboard-page .stat-card strong {
+  font-size:42px;
+  background:linear-gradient(135deg,#10233f,#1597dc);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.dashboard-page .stat-card:hover {
+  transform:translateY(-10px) rotateX(5deg) rotateY(-5deg) scale(1.015);
+}
+.dashboard-page .action-grid { gap:20px; }
+.dashboard-page .action-card {
+  min-height:104px;
+  border-radius:20px;
+  transform-style:preserve-3d;
+  box-shadow:0 16px 40px rgba(22,91,128,.09);
+}
+.dashboard-page .action-icon {
+  width:48px;height:48px;border-radius:15px;
+  box-shadow:0 8px 20px rgba(21,151,220,.12);
+}
+.dashboard-page .section-heading h2 { font-size:26px; }
+@keyframes pfWelcome {
+  0%,100%{transform:perspective(1200px) rotateX(1deg) translateY(0)}
+  50%{transform:perspective(1200px) rotateX(1deg) translateY(-3px)}
+}
+@keyframes pfStatIn {
+  from{opacity:0;transform:translateY(35px) rotateX(12deg) scale(.94)}
+  to{opacity:1;transform:translateY(0) rotateX(0) scale(1)}
+}
+.login-page {
+  background:
+    radial-gradient(circle at 15% 20%,rgba(72,185,238,.25),transparent 25%),
+    radial-gradient(circle at 85% 75%,rgba(21,151,220,.18),transparent 28%),
+    linear-gradient(135deg,#eaf8ff,#ffffff 50%,#eaf7ff);
+}
+.login-card {
+  border:1px solid rgba(100,190,230,.38);
+  background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(235,248,255,.78));
+}
+.login-page .brand-mark {
+  box-shadow:0 15px 35px rgba(21,151,220,.35);
+  transform:translateZ(25px);
+}
+@media(max-width:700px){
+  .dashboard-shell{padding-top:8px}
+  .dashboard-page .dashboard-header{padding:22px 20px}
+  .dashboard-page .stat-card{min-height:135px}
+}
