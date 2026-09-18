@@ -8,6 +8,8 @@ type User = {
   departmentId: string | null; department: { name: string } | null
 }
 type Department = { id: string; name: string }
+type RegistrationRequest = { id: string; organizationName: string; organizationType: string; firstName: string; lastName: string; email: string; phone: string | null; matricule: string | null; functionTitle: string | null; className: string | null; createdAt: string }
+type Organization = { id: string; name: string; type: string }
 
 export default function PersonnelPage() {
   const [users, setUsers] = useState<User[]>([])
@@ -19,16 +21,28 @@ export default function PersonnelPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
+  const [requests, setRequests] = useState<RegistrationRequest[]>([])
+  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [reviewOrganization, setReviewOrganization] = useState<Record<string, string>>({})
 
   async function load() {
     setLoading(true)
     try {
-      const [usersResponse, departmentsResponse] = await Promise.all([fetch("/api/users", { cache: "no-store" }), fetch("/api/departments", { cache: "no-store" })])
+      const [usersResponse, departmentsResponse, requestsResponse] = await Promise.all([
+        fetch("/api/users", { cache: "no-store" }),
+        fetch("/api/departments", { cache: "no-store" }),
+        fetch("/api/registration-requests", { cache: "no-store" }),
+      ])
       const usersData = await usersResponse.json()
       const departmentsData = await departmentsResponse.json()
+      const requestsData = await requestsResponse.json()
       if (!usersResponse.ok) throw new Error(usersData.error ?? "Impossible de charger le personnel.")
       setUsers(usersData.users ?? [])
       if (departmentsResponse.ok) setDepartments(departmentsData.departments ?? [])
+      if (requestsResponse.ok) {
+        setRequests(requestsData.requests ?? [])
+        setOrganizations(requestsData.organizations ?? [])
+      }
     } catch (err) { setError(err instanceof Error ? err.message : "Erreur de chargement.") }
     finally { setLoading(false) }
   }
@@ -39,6 +53,26 @@ export default function PersonnelPage() {
     const term = search.trim().toLowerCase()
     return term ? users.filter((u) => `${u.firstName} ${u.lastName} ${u.email} ${u.matricule ?? ""} ${u.functionTitle ?? ""}`.toLowerCase().includes(term)) : users
   }, [users, search])
+
+  async function reviewRequest(requestId: string, action: "approve" | "reject") {
+    setError(""); setMessage("")
+    const organizationId = reviewOrganization[requestId] ?? ""
+    if (action === "approve" && organizations.length > 0 && !organizationId) {
+      setError("Sélectionnez l’organisation à attribuer à cette demande.")
+      return
+    }
+    try {
+      const response = await fetch("/api/registration-requests", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId, action, organizationId }),
+      })
+      const data = await response.json()
+      if (!response.ok) { setError(data.error ?? "Impossible de traiter la demande."); return }
+      setMessage(action === "approve" ? "Demande validée : le compte est maintenant actif." : "Demande refusée.")
+      await load()
+    } catch { setError("Erreur réseau. Réessayez.") }
+  }
 
   function openEdit(user: User) {
     setEditing(user)
@@ -96,6 +130,21 @@ export default function PersonnelPage() {
         </header>
         {error && <p className="login-error" role="alert">{error}</p>}
         {message && <p className="success-message" role="status">{message}</p>}
+
+        {requests.length > 0 && <section className="dashboard-actions">
+          <div className="section-heading"><div><p className="dashboard-eyebrow">{requests.length} DEMANDE(S)</p><h2>Demandes d’inscription à vérifier</h2><p className="dashboard-subtitle">Vérifiez l’identité et l’organisation déclarée avant d’activer un compte.</p></div></div>
+          <div className="personnel-list">
+            {requests.map((request) => <article className="personnel-row" key={request.id}>
+              <div><strong>{request.firstName} {request.lastName}</strong><p>{request.email}{request.phone ? " · " + request.phone : ""}</p></div>
+              <div><strong>{request.organizationName}</strong><p>{request.organizationType === "SCHOOL" && request.className ? "Élève · " + request.className : request.functionTitle || "Profil non précisé"}{request.matricule ? " · " + request.matricule : ""}</p></div>
+              {organizations.length > 0 && <select value={reviewOrganization[request.id] ?? ""} onChange={(e) => setReviewOrganization((current) => ({ ...current, [request.id]: e.target.value }))}>
+                <option value="">Organisation…</option>
+                {organizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name} · {organization.type}</option>)}
+              </select>}
+              <div className="row-actions"><button type="button" onClick={() => reviewRequest(request.id, "approve")}>Valider</button><button type="button" onClick={() => reviewRequest(request.id, "reject")}>Refuser</button></div>
+            </article>)}
+          </div>
+        </section>}
 
         {editing && <section className="form-card">
           <div className="section-heading"><div><p className="dashboard-eyebrow">MODIFICATION</p><h2>{editing.firstName} {editing.lastName}</h2></div><button className="logout-button" type="button" onClick={() => setEditing(null)}>Fermer</button></div>
