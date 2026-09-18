@@ -38,12 +38,12 @@ export default async function DashboardPage() {
   if (!session.organizationId && !isSuperAdmin) redirect("/login")
 
   if (isSuperAdmin) {
-    const [organizationCount, personnelCount, attendanceCount] = await Promise.all([
+    const [organizationCount, adminCount, attendanceCount] = await Promise.all([
       prisma.organization.count(),
-      prisma.user.count({ where: { role: "USER", isActive: true } }),
+      prisma.user.count({ where: { role: "ADMIN", isActive: true } }),
       prisma.attendance.count({ where: { attendanceDate: today, checkInAt: { not: null } } }),
     ])
-    return <main className="dashboard-page"><div className="dashboard-shell"><DashboardHeader /><section className="dashboard-welcome"><div><span className="status-dot" /><span>Session active</span></div><strong>Super Administrateur</strong></section><section className="stats-grid"><StatCard label="Organisations" value={organizationCount} detail="organisations enregistrées" /><StatCard label="Personnel actif" value={personnelCount} detail="utilisateurs actifs" /><StatCard label="Pointages aujourd’hui" value={attendanceCount} detail="pointages enregistrés" /></section><QuickActions isSuperAdmin /></div></main>
+    return <main className="dashboard-page"><div className="dashboard-shell"><DashboardHeader /><section className="dashboard-welcome"><div><span className="status-dot" /><span>Session active</span></div><strong>Super Administrateur</strong></section><section className="stats-grid"><StatCard label="Organisations" value={organizationCount} detail="organisations enregistrées" /><StatCard label="Administrateurs actifs" value={adminCount} detail="comptes administrateurs" /><StatCard label="Pointages aujourd’hui" value={attendanceCount} detail="pointages enregistrés" /></section><QuickActions isSuperAdmin /></div></main>
   }
 
   const organizationId = session.organizationId!
