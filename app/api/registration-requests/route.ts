@@ -23,11 +23,11 @@ export async function GET() {
   })
 
   const filtered = session.role === "ADMIN" && session.organizationId
-    ? await (async () => {
-        const organization = await prisma.organization.findUnique({ where: { id: session.organizationId }, select: { name: true, type: true } })
+    ? await (async (organizationId: string) => {
+        const organization = await prisma.organization.findUnique({ where: { id: organizationId }, select: { name: true, type: true } })
         if (!organization) return []
         return requests.filter((item) => item.organizationName.trim().toLowerCase() === organization.name.trim().toLowerCase() && item.organizationType === organization.type)
-      })()
+      })(session.organizationId)
     : requests
 
   const organizations = session.role === "SUPER_ADMIN"
