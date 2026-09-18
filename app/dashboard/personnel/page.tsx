@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 
 type User = {
   id: string; email: string; firstName: string; lastName: string; phone: string | null
-  matricule: string | null; role: string; functionTitle: string | null; isActive: boolean
+  matricule: string | null; className: string | null; role: string; functionTitle: string | null; isActive: boolean
   departmentId: string | null; department: { name: string } | null
 }
 type Department = { id: string; name: string }
