@@ -117,6 +117,17 @@ export default function Home() {
           </div>
 
           <div className="landing-visual" aria-label="Aperçu du tableau de bord">
+            <div className="hero-widget hero-widget-gps">
+              <span className="widget-pulse" />
+              <div><b>GPS ACTIF</b><small>Position vérifiée · 50 m</small></div>
+            </div>
+            <div className="hero-widget hero-widget-users">
+              <b>124</b><div><span>PERSONNES</span><small>+8% ce mois</small></div>
+            </div>
+            <div className="hero-widget hero-widget-presence">
+              <span className="widget-mini-icon">✓</span>
+              <div><b>Présence enregistrée</b><small>Aujourd’hui · 08:02</small></div>
+            </div>
             <div className="landing-glow" />
             <div className="dashboard-preview">
               <div className="preview-topbar">
