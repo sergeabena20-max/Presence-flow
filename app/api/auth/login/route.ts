@@ -71,8 +71,16 @@ export async function POST(request: Request) {
       },
     })
 
-    if (!user || !user.isActive) {
+    if (!user) {
+      const pending = await prisma.registrationRequest.findUnique({ where: { email }, select: { status: true } })
+      if (pending?.status === "PENDING") {
+        return NextResponse.json({ error: "Votre demande est en attente de validation par un administrateur. Vous pourrez vous connecter après son approbation." }, { status: 403 })
+      }
       return NextResponse.json({ error: "Identifiants invalides." }, { status: 401 })
+    }
+
+    if (!user.isActive) {
+      return NextResponse.json({ error: "Votre compte est désactivé. Contactez l’administrateur de votre organisation." }, { status: 403 })
     }
 
     const validPassword = await bcrypt.compare(password, user.passwordHash)
