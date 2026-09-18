@@ -58,7 +58,47 @@ export async function POST(request: Request) {
 
     if (!existing || !existing.checkInAt) {
       if (existing?.checkOutAt) return NextResponse.json({ error: "Votre départ a déjà été enregistré pour aujourd’hui. L’arrivée ne peut plus être ajoutée." }, { status: 409 })
-      if (currentMinutes > checkInDeadline) return NextResponse.json({ error: `Le délai de pointage d’arrivée est dépassé. L’arrivée était possible jusqu’à ${organization.workStartTime} + ${organization.checkInToleranceMinutes} min. Vous pouvez toutefois enregistrer votre départ à partir de ${organization.workEndTime}.` }, { status: 403 })
+
+      // Après la fin de journée, l’arrivée est fermée mais le départ reste possible.
+      // Si aucun pointage d’arrivée n’existe, on conserve explicitement l’absence.
+      if (currentMinutes >= endMinutes) {
+        const attendance = existing
+          ? await prisma.attendance.update({
+              where: { id: existing.id },
+              data: {
+                status: "ABSENT",
+                checkOutAt: now,
+                checkOutLat: latitude,
+                checkOutLng: longitude,
+                checkOutDistanceM: distance,
+                checkOutAccuracyM: Number.isFinite(accuracy) ? accuracy : null,
+                verification: "GPS_RADIUS",
+              },
+            })
+          : await prisma.attendance.create({
+              data: {
+                organizationId: organization.id,
+                userId: user.id,
+                attendanceDate: today,
+                status: "ABSENT",
+                checkOutAt: now,
+                checkOutLat: latitude,
+                checkOutLng: longitude,
+                checkOutDistanceM: distance,
+                checkOutAccuracyM: Number.isFinite(accuracy) ? accuracy : null,
+                verification: "GPS_RADIUS",
+              },
+            })
+
+        return NextResponse.json({
+          success: true,
+          action: "CHECK_OUT",
+          message: "Départ enregistré. Aucun pointage d’arrivée n’a été enregistré aujourd’hui.",
+          attendance: { id: attendance.id, distanceM: Math.round(distance), status: "ABSENT" },
+        }, { status: existing ? 200 : 201 })
+      }
+
+      if (currentMinutes > checkInDeadline) return NextResponse.json({ error: `Le délai de pointage d’arrivée est dépassé. L’arrivée était possible jusqu’à ${organization.workStartTime} + ${organization.checkInToleranceMinutes} min. Le départ reste disponible à partir de ${organization.workEndTime}.` }, { status: 403 })
 
       const status = currentMinutes > startMinutes ? "LATE" : "PRESENT"
       const attendance = existing
