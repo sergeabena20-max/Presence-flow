@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
   const organizationId = session.role === "SUPER_ADMIN" ? requestedOrganizationId || undefined : session.organizationId!
   const requestedDate = url.searchParams.get("date")?.trim() || getDoualaDateKey()
-  const dateAllowed = /^\\d{4}-\\d{2}-\\d{2}$/.test(requestedDate)
+  const dateAllowed = /^\d{4}-\d{2}-\d{2}$/.test(requestedDate)
   const attendanceDateKey = session.role === "USER" ? getDoualaDateKey() : (dateAllowed ? requestedDate : getDoualaDateKey())
   const attendanceDate = new Date(`${attendanceDateKey}T00:00:00.000Z`)
 
