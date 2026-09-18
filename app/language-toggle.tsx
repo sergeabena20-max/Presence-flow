@@ -1,7 +1,3 @@
-"use client"
-
-import { useEffect, useState } from "react"
-
 const translations: Record<string, string> = {
   "Navigation principale":"Main navigation","Se connecter":"Log in","Gestion intelligente des présences":"Smart attendance management",
   "Gérez les présences.":"Manage attendance.","Simplement.":"Simply.","Accéder à mon espace":"Access my space","Découvrir la plateforme":"Discover the platform",
@@ -43,7 +39,6 @@ const translations: Record<string, string> = {
   "Gérer les utilisateurs inscrits.":"Manage registered users.","Administrateurs":"Administrators","Présences":"Attendance",
   "Bonjour":"Hello",
   "Bonjour {user.firstName}":"Hello {user.firstName}",
-  "Gérez les présences.":"Manage attendance.",
   "Gestion moderne des présences":"Modern attendance management",
   "Une plateforme pensée pour vous":"A platform designed for you",
   "Tout ce qu’il faut pour suivre les présences.":"Everything you need to track attendance.",
@@ -82,11 +77,9 @@ const translations: Record<string, string> = {
   "Utiliser ma position actuelle":"Use my current location",
   "Récupération du GPS…":"Getting GPS location…",
   "Position GPS récupérée. Vérifiez-la puis enregistrez.":"GPS location retrieved. Check it and save.",
-  "Tableau de bord":"Dashboard",
   "← Tableau de bord":"← Dashboard",
   "SUPERVISION":"SUPERVISION",
   "Personnel":"Personnel",
-  "Gérer les utilisateurs inscrits.":"Manage registered users.",
   "Nouvel administrateur":"New administrator",
   "Modifier le compte":"Edit account",
   "Nouveau mot de passe (facultatif)":"New password (optional)",
@@ -94,7 +87,6 @@ const translations: Record<string, string> = {
   "Connexion impossible.":"Unable to log in.",
   "Impossible de contacter le serveur.":"Unable to contact the server.",
   "Votre compte est rattaché à une seule organisation.":"Your account is linked to one organization.",
-  "Votre demande sera vérifiée avant l’activation de votre compte.":"Your request will be reviewed before your account is activated.",
   "Se connecter":"Log in",
   "Accéder à mon espace":"Access my space",
   "Créer mon compte":"Create my account",
@@ -116,10 +108,7 @@ const translations: Record<string, string> = {
   "Erreur réseau. Réessayez dans quelques instants.":"Network error. Please try again shortly.",
   "Autorisez la localisation pour récupérer la position actuelle.":"Allow location access to retrieve your current position.",
   "Position GPS indisponible. Vérifiez votre localisation et réessayez.":"GPS location unavailable. Check your location and try again.",
-  "Déconnexion":"Log out",
   "Supprimer":"Delete",
-  "Modifier":"Edit",
-  "Annuler":"Cancel",
   "Enregistrement…":"Saving…",
   "Aucun résultat":"No results",
   "Aucun personnel":"No personnel",
@@ -130,7 +119,6 @@ const translations: Record<string, string> = {
   "Rejeté":"Rejected",
   "Demande d’inscription":"Registration request",
   "Demandes d’inscription":"Registration requests",
-  "Créer, superviser et supprimer les organisations.":"Create, supervise and delete organizations.",
   "Type":"Type",
   "Téléphone":"Phone",
   "E-mail":"Email",
