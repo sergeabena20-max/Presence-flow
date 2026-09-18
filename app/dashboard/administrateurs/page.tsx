@@ -15,10 +15,11 @@ export default function AdministrateursPage(){
   async function load(){
     setLoading(true);setError("")
     try{
-      const [ar,or]=await Promise.all([fetch("/api/admins"+(organizationId?"?organizationId="+encodeURIComponent(organizationId):""),{cache:"no-store"}),fetch("/api/organizations",{cache:"no-store"})])
-      const ad=await ar.json();const od=await or.json()
+      const ar=await fetch("/api/admins"+(organizationId?"?organizationId="+encodeURIComponent(organizationId):""),{cache:"no-store"})
+      const ad=await ar.json()
       if(!ar.ok)throw new Error(ad.error||"Impossible de charger les administrateurs.")
-      setAdmins(ad.admins||[]);if(or.ok)setOrganizations(od.organizations||[])
+      setAdmins(ad.admins||[])
+      setOrganizations(ad.organizations||[])
     }catch(e){setError(e instanceof Error?e.message:"Erreur de chargement.")}finally{setLoading(false)}
   }
   useEffect(()=>{load()},[organizationId])
