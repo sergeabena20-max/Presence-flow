@@ -30,7 +30,7 @@ export default async function DashboardPage() {
 
     return <main className="dashboard-page user-dashboard"><div className="dashboard-shell narrow-shell">
       <header className="dashboard-header"><div><p className="dashboard-eyebrow">PRESENCE-FLOW</p><h1>Bonjour {user.firstName}</h1><p className="dashboard-subtitle">{user.organization.name}</p></div></header>
-      <UserAttendance firstName={user.firstName} organizationName={user.organization.name} workStartTime={user.organization.workStartTime} tolerance={user.organization.checkInToleranceMinutes} workEndTime={user.organization.workEndTime} allowedRadiusM={user.organization.allowedRadiusM} checkInAt={attendance?.checkInAt?.toISOString() ?? null} checkOutAt={attendance?.checkOutAt?.toISOString() ?? null} status={attendance?.status ?? null} distanceM={attendance?.checkOutDistanceM ?? attendance?.checkInDistanceM ?? null} />
+      <UserAttendance organizationName={user.organization.name} workStartTime={user.organization.workStartTime} tolerance={user.organization.checkInToleranceMinutes} workEndTime={user.organization.workEndTime} allowedRadiusM={user.organization.allowedRadiusM} checkInAt={attendance?.checkInAt?.toISOString() ?? null} checkOutAt={attendance?.checkOutAt?.toISOString() ?? null} status={attendance?.status ?? null} distanceM={attendance?.checkOutDistanceM ?? attendance?.checkInDistanceM ?? null} />
     </div></main>
   }
 
