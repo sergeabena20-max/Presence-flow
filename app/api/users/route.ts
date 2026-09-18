@@ -5,8 +5,11 @@ import { prisma } from "@/lib/prisma"
 async function requireAdmin() {
   const session = await getSession()
   if (!session) return { error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }) }
-  if (session.role !== "ADMIN" || !session.organizationId) {
+  if (!["ADMIN", "SUPER_ADMIN"].includes(session.role)) {
     return { error: NextResponse.json({ error: "Accès interdit." }, { status: 403 }) }
+  }
+  if (session.role === "ADMIN" && !session.organizationId) {
+    return { error: NextResponse.json({ error: "Organisation introuvable." }, { status: 403 }) }
   }
   return { session }
 }
@@ -16,7 +19,7 @@ export async function GET() {
   if ("error" in auth) return auth.error
 
   const users = await prisma.user.findMany({
-    where: { organizationId: auth.session.organizationId, role: "USER" },
+    where: { ...(auth.session.role === "ADMIN" ? { organizationId: auth.session.organizationId! } : {}), role: "USER" },
     select: {
       id: true, email: true, firstName: true, lastName: true, phone: true,
       matricule: true, role: true, functionTitle: true, isActive: true,
