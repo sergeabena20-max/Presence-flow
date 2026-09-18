@@ -11,6 +11,22 @@ const ORGANIZATION_TYPES = [
   "OTHER",
 ] as const
 
+export async function GET() {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 })
+  if (session.role !== "SUPER_ADMIN") return NextResponse.json({ error: "Accès interdit." }, { status: 403 })
+  try {
+    const organizations = await prisma.organization.findMany({
+      select: { id: true, name: true, type: true, createdAt: true, _count: { select: { users: true, attendances: true } } },
+      orderBy: { name: "asc" },
+    })
+    return NextResponse.json({ organizations })
+  } catch (error) {
+    console.error("Organizations list error:", error)
+    return NextResponse.json({ error: "Impossible de charger les organisations." }, { status: 500 })
+  }
+}
+
 export async function POST(request: Request) {
   const session = await getSession()
 
