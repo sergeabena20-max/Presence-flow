@@ -19,7 +19,10 @@ export async function GET(request: Request) {
   if (session.role === "ADMIN" && requestedOrganizationId && requestedOrganizationId !== session.organizationId) return NextResponse.json({ error: "Accès interdit." }, { status: 403 })
 
   const organizationId = session.role === "SUPER_ADMIN" ? requestedOrganizationId || undefined : session.organizationId!
-  const attendanceDate = new Date(`${getDoualaDateKey()}T00:00:00.000Z`)
+  const requestedDate = url.searchParams.get("date")?.trim() || getDoualaDateKey()
+  const dateAllowed = /^\\d{4}-\\d{2}-\\d{2}$/.test(requestedDate)
+  const attendanceDateKey = session.role === "USER" ? getDoualaDateKey() : (dateAllowed ? requestedDate : getDoualaDateKey())
+  const attendanceDate = new Date(`${attendanceDateKey}T00:00:00.000Z`)
 
   try {
     const attendances = await prisma.attendance.findMany({
@@ -40,7 +43,7 @@ export async function GET(request: Request) {
     const organizations = session.role === "SUPER_ADMIN"
       ? await prisma.organization.findMany({ select: { id: true, name: true, type: true }, orderBy: { name: "asc" } })
       : []
-    return NextResponse.json({ date: getDoualaDateKey(), attendances, organizations, role: session.role })
+    return NextResponse.json({ date: attendanceDateKey, attendances, organizations, role: session.role })
   } catch (error) {
     console.error("Today attendance error:", error)
     return NextResponse.json({ error: "Impossible de charger les présences." }, { status: 500 })
