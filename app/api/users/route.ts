@@ -22,7 +22,7 @@ export async function GET() {
     where: { ...(auth.session.role === "ADMIN" ? { organizationId: auth.session.organizationId! } : {}), role: "USER" },
     select: {
       id: true, email: true, firstName: true, lastName: true, phone: true,
-      matricule: true, role: true, functionTitle: true, isActive: true,
+      matricule: true, className: true, role: true, functionTitle: true, isActive: true,
       departmentId: true, department: { select: { name: true } },
     },
     orderBy: [{ isActive: "desc" }, { lastName: "asc" }, { firstName: "asc" }],
