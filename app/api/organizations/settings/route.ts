@@ -9,15 +9,14 @@ async function requireAdmin() {
   const session = await getSession()
   if (!session) return { error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }) }
   if (session.role !== "ADMIN" || !session.organizationId) return { error: NextResponse.json({ error: "Accès interdit." }, { status: 403 }) }
-  return { session: { ...session, organizationId: session.organizationId } }
+  return { session }
 }
 
 export async function GET() {
   const auth = await requireAdmin()
   if ("error" in auth) return auth.error
-  const organizationId = auth.session.organizationId
   const organization = await prisma.organization.findUnique({
-    where: { id: organizationId },
+    where: { id: auth.session.organizationId },
     select: { id: true, name: true, latitude: true, longitude: true, allowedRadiusM: true, workStartTime: true, checkInToleranceMinutes: true, workEndTime: true, timezone: true },
   })
   if (!organization) return NextResponse.json({ error: "Organisation introuvable." }, { status: 404 })
@@ -27,7 +26,6 @@ export async function GET() {
 export async function PATCH(request: Request) {
   const auth = await requireAdmin()
   if ("error" in auth) return auth.error
-  const organizationId = auth.session.organizationId
 
   try {
     const body = await request.json()
@@ -49,7 +47,7 @@ export async function PATCH(request: Request) {
     if (endMinutes <= startMinutes) return NextResponse.json({ error: "L’heure de fin doit être après l’heure de début." }, { status: 400 })
 
     const organization = await prisma.organization.update({
-      where: { id: organizationId },
+      where: { id: auth.session.organizationId },
       data: { latitude, longitude, allowedRadiusM, workStartTime, workEndTime, checkInToleranceMinutes },
       select: { id: true, name: true, latitude: true, longitude: true, allowedRadiusM: true, workStartTime: true, checkInToleranceMinutes: true, workEndTime: true, timezone: true },
     })
