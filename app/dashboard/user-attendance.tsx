@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 type Props = { organizationName: string; workStartTime: string; tolerance: number; workEndTime: string; allowedRadiusM: number; checkInAt: string | null; checkOutAt: string | null; status: "PRESENT" | "LATE" | "ABSENT" | null; distanceM: number | null }
