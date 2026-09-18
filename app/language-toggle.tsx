@@ -154,6 +154,7 @@ const translations: Record<string, string> = {
   "Pointage":"Check-in",
   "Distance":"Distance",
   "Précision GPS":"GPS accuracy",
+}
 
 const reverse = Object.fromEntries(Object.entries(translations).map(([fr,en]) => [en,fr]))
 
